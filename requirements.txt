@@ -1,5 +1,16 @@
 streamlit
 fastai
 torch
+torchvision
 matplotlib
-Pillow
+pillow
+fastai
+torch
+torchvision
+pillow
+fastapi
+uvicorn
+fastai==2.7.12
+streamlit==1.29.0
+pillow==10.1.0
+torch==2.1.0
