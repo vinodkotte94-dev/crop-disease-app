@@ -1,66 +1,40 @@
-# 🌿 Improved Prompt-Based Crop Disease Identifier using FastAI + Streamlit
+# 🌿 Prompt-Based Crop Disease Identifier using FastAI + Streamlit
 # -------------------------------------------------------------------------
 # Run with:
 #   streamlit run app.py
+
+# ------------------- Fix WindowsPath on Linux/Streamlit -------------------
+import pathlib
+if not hasattr(pathlib, 'WindowsPath'):
+    pathlib.WindowsPath = pathlib.PosixPath
+# -------------------------------------------------------------------------
 
 from fastai.vision.all import *
 import streamlit as st
 from pathlib import Path
 import PIL.Image
-# Import pathlib explicitly for the fix
-import pathlib 
 
-# -------------------------------------------------------------------------
-# Configuration
-
-# -------------------------------------------------------------------------
-from pathlib import Path
-MODEL_PATH = Path("tomato_disease_model.pkl")
-learn = load_learner(str(MODEL_PATH), cpu=True)
-
+# ------------------- Configuration -------------------
 MODEL_PATH = Path("tomato_disease_model.pkl")  # OS-independent path
 
-# -------------------------------------------------------------------------
-# Load Model (Cached for Streamlit)
-# -------------------------------------------------------------------------
+# ------------------- Load Model (Cached for Streamlit) -------------------
 @st.cache_resource
 def load_model():
     if not MODEL_PATH.exists():
         st.error("❌ Model file not found. Please train it first using FastAI.")
         st.stop()
     try:
-        # -----------------------------------------------------------------
-        # FIX FOR 'WindowsPath' ERROR ON LINUX/STREAMLIT CLOUD
-        # The deployed environment (Linux/Posix) doesn't know 'WindowsPath'.
-        # We temporarily alias PosixPath to WindowsPath to allow the
-        # saved model object (which contains WindowsPath objects) to be loaded.
-        # This is the industry-standard workaround for this FastAI issue.
-        # -----------------------------------------------------------------
-        
-        # Check if WindowsPath is available (it won't be on Linux)
-        if not hasattr(pathlib, 'WindowsPath'):
-            # If not available, create an alias so load_learner can find it
-            pathlib.WindowsPath = pathlib.PosixPath
-            
-        # Force CPU load for deployment (Streamlit cloud or Linux)
+        # Load model on CPU
         learn = load_learner(str(MODEL_PATH), cpu=True)
         st.success("✅ Model loaded successfully!")
         return learn
     except Exception as e:
-        # Remove the temporary alias in case of other errors (optional but good practice)
-        # However, since this is in a cached function, it's less critical.
-        if hasattr(pathlib, 'WindowsPath') and pathlib.WindowsPath == pathlib.PosixPath:
-             delattr(pathlib, 'WindowsPath')
-             
         st.error(f"Error loading model: {e}")
         st.stop()
 
-# -------------------------------------------------------------------------
-# Cure Suggestion Logic
-# -------------------------------------------------------------------------
+# ------------------- Cure Suggestion Logic -------------------
 def get_cure_suggestion(disease_name: str):
     disease = disease_name.lower()
-
     cures = {
         "healthy": "✅ The leaf is healthy. No treatment required.",
         "bacterial spot": (
@@ -95,9 +69,7 @@ def get_cure_suggestion(disease_name: str):
             return suggestion
     return "⚠ Unknown disease. Please verify the dataset labels or retrain model."
 
-# -------------------------------------------------------------------------
-# Streamlit UI
-# -------------------------------------------------------------------------
+# ------------------- Streamlit UI -------------------
 st.set_page_config(page_title="🌾 Crop Disease Identifier", layout="wide")
 st.title("🌿 Prompt-Based Crop Disease Identifier")
 st.markdown("### Identify plant leaf diseases using a trained FastAI model")
@@ -105,7 +77,7 @@ st.markdown("### Identify plant leaf diseases using a trained FastAI model")
 # Load model
 learn = load_model()
 
-# Input prompt (UX only)
+# Input prompt
 prompt = st.text_input("💬 Enter your prompt (e.g., 'Identify the disease in this tomato leaf')")
 
 uploaded_file = st.file_uploader("📸 Upload a tomato leaf image", type=["jpg", "jpeg", "png"])
