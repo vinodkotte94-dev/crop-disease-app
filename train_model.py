@@ -1,3 +1,7 @@
+from pathlib import PosixPath
+import pathlib
+pathlib.WindowsPath = PosixPath
+
 from fastai.vision.all import *
 
 def main():
@@ -23,7 +27,8 @@ def main():
     learn.fine_tune(1)
 
     # Step 6: Export the model
-    learn.export('model.pkl')
+    learn.export("tomato_disease_model.pkl")
+
     print("✅ Model exported as model.pkl")
 
 if __name__ == "__main__":
